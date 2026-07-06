@@ -165,7 +165,7 @@ def build_synthetic_dataset(row_count: int = ROW_COUNT, seed: int = RANDOM_SEED)
     catastrophe_period = np.isin(period_month, list(catastrophe_months))
     catastrophe_flag = np.where(catastrophe_state & catastrophe_period & (rng.random(row_count) < 0.48), "Yes", "No")
 
-    risk_score *= np.where(catastrophe_flag == "Yes", 2.6, 1.0)
+    risk_score *= np.where(catastrophe_flag == "Yes", 1.8, 1.0)
     claim_count = rng.poisson(risk_score).clip(0, 2)
 
     loss_category = np.full(row_count, "Other", dtype=object)
@@ -193,8 +193,14 @@ def build_synthetic_dataset(row_count: int = ROW_COUNT, seed: int = RANDOM_SEED)
         severity = rng.lognormal(mean=np.log(mean), sigma=sigma, size=mask.sum())
         incurred_loss[mask] = severity * claim_count[mask]
 
-    incurred_loss *= np.where(catastrophe_flag == "Yes", rng.normal(1.55, 0.12, row_count), 1.0)
+    incurred_loss *= np.where(catastrophe_flag == "Yes", rng.normal(1.25, 0.08, row_count), 1.0)
     incurred_loss *= np.where(business_type == "New Business", 1.08, 0.98)
+
+    # Calibrate the portfolio to a realistic comprehensive loss ratio range.
+    # Most segments should sit below 100%, while a few theft-prone vehicle
+    # models remain visibly adverse for diagnostic purposes.
+    hot_model_factor = np.where(np.isin(vehicle_model, list(THEFT_HOT_MODELS)), 1.85, 1.0)
+    incurred_loss *= 0.19 * hot_model_factor
     incurred_loss = np.round(incurred_loss.clip(0), 2)
 
     df = pd.DataFrame(
