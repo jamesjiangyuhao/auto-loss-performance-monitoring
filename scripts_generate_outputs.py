@@ -26,7 +26,7 @@ def save(fig, name):
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / name
     fig.tight_layout()
-    fig.savefig(path, dpi=170, bbox_inches="tight")
+    fig.savefig(path, dpi=170)
     plt.close(fig)
     return path
 
@@ -114,4 +114,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
