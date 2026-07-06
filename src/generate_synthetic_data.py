@@ -94,13 +94,14 @@ MAKE_RISK = {
 }
 THEFT_HOT_MODELS = {"Falcon S", "Falcon Prime", "Titan Crew", "Apex Cross"}
 
-LOSS_CATEGORIES = ["Theft", "Glass", "Weather", "Fire", "Other"]
-LOSS_CATEGORY_PROB = [0.22, 0.30, 0.25, 0.06, 0.17]
+LOSS_CATEGORIES = ["Glass", "Theft", "Vandalism", "Animal", "Hail", "Other"]
+LOSS_CATEGORY_PROB = [0.28, 0.24, 0.14, 0.08, 0.16, 0.10]
 LOSS_SEVERITY_MEAN = {
     "Theft": 6_800,
     "Glass": 950,
-    "Weather": 3_700,
-    "Fire": 9_500,
+    "Vandalism": 2_900,
+    "Animal": 3_300,
+    "Hail": 3_700,
     "Other": 2_200,
 }
 
@@ -182,14 +183,14 @@ def build_synthetic_dataset(row_count: int = ROW_COUNT, seed: int = RANDOM_SEED)
     loss_category[theft_boost & theft_random] = "Theft"
     loss_category[(catastrophe_flag == "Yes") & claim_rows] = np.where(
         rng.random(((catastrophe_flag == "Yes") & claim_rows).sum()) < 0.80,
-        "Weather",
+        "Hail",
         loss_category[(catastrophe_flag == "Yes") & claim_rows],
     )
 
     incurred_loss = np.zeros(row_count)
     for category, mean in LOSS_SEVERITY_MEAN.items():
         mask = claim_rows & (loss_category == category)
-        sigma = 0.65 if category in {"Theft", "Fire"} else 0.50
+        sigma = 0.65 if category in {"Theft", "Vandalism"} else 0.50
         severity = rng.lognormal(mean=np.log(mean), sigma=sigma, size=mask.sum())
         incurred_loss[mask] = severity * claim_count[mask]
 
