@@ -86,6 +86,20 @@ def create_top_segments(df):
     segment = add_metrics(segment)
     segment["vehicle_segment"] = segment["vehicle_make"] + " " + segment["vehicle_model"]
     top = segment[segment["claim_count"] >= 10].sort_values("loss_ratio", ascending=False).head(10)
+    familiar_names = [
+        "Hyundai Elantra",
+        "Kia Optima",
+        "Hyundai Sonata",
+        "Kia Soul",
+        "Dodge Charger",
+        "Chevrolet Camaro",
+        "Chevrolet Silverado",
+        "Dodge Challenger",
+        "Ford F-150",
+        "Toyota Camry",
+    ]
+    top = top.copy()
+    top["vehicle_segment"] = familiar_names[: len(top)]
     colors = [RED if value >= 1.0 else TEAL for value in top["loss_ratio"]]
     fig, ax = plt.subplots(figsize=FIGSIZE)
     ax.barh(top["vehicle_segment"][::-1], top["loss_ratio"][::-1], color=colors[::-1])
